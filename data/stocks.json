@@ -1,0 +1,50 @@
+[
+  { "ticker": "ITC.NS", "name": "ITC", "theme": "dividend", "comment": "High dividend yield, strong FMCG cash flows" },
+  { "ticker": "POWERGRID.NS", "name": "Power Grid Corporation", "theme": "dividend", "comment": "Stable PSU, predictable dividends" },
+  { "ticker": "COALINDIA.NS", "name": "Coal India", "theme": "dividend", "comment": "Very high dividend yield, strong cash generation" },
+  { "ticker": "ONGC.NS", "name": "ONGC", "theme": "dividend", "comment": "Oil PSU, high dividends linked to crude cycle" },
+  { "ticker": "BPCL.NS", "name": "Bharat Petroleum", "theme": "dividend", "comment": "High yield refining PSU" },
+  { "ticker": "NTPC.NS", "name": "NTPC", "theme": "dividend", "comment": "Stable utility, consistent payouts" },
+  { "ticker": "RECLTD.NS", "name": "REC Ltd", "theme": "dividend", "comment": "High yield PSU NBFC, infra lending" },
+  { "ticker": "PFC.NS", "name": "Power Finance Corporation", "theme": "dividend", "comment": "Strong dividend + infra financing exposure" },
+
+  { "ticker": "RELIANCE.NS", "name": "Reliance Industries", "theme": "growth", "comment": "Energy + retail + telecom growth engine" },
+  { "ticker": "TCS.NS", "name": "TCS", "theme": "compounder", "comment": "Consistent compounding, strong margins" },
+  { "ticker": "INFY.NS", "name": "Infosys", "theme": "growth", "comment": "Digital + global IT exposure" },
+  { "ticker": "HDFCBANK.NS", "name": "HDFC Bank", "theme": "compounder", "comment": "Best-in-class retail banking franchise" },
+  { "ticker": "ICICIBANK.NS", "name": "ICICI Bank", "theme": "growth", "comment": "Improving ROE, strong loan growth" },
+  { "ticker": "KOTAKBANK.NS", "name": "Kotak Mahindra Bank", "theme": "compounder", "comment": "High quality balance sheet bank" },
+  { "ticker": "AXISBANK.NS", "name": "Axis Bank", "theme": "growth", "comment": "Turnaround story with improving asset quality" },
+
+  { "ticker": "LT.NS", "name": "Larsen & Toubro", "theme": "infrastructure", "comment": "Infra capex cycle beneficiary" },
+  { "ticker": "ULTRACEMCO.NS", "name": "UltraTech Cement", "theme": "infrastructure", "comment": "Leader in cement, infra growth proxy" },
+  { "ticker": "SIEMENS.NS", "name": "Siemens India", "theme": "capital_goods", "comment": "Capex + manufacturing revival play" },
+  { "ticker": "ABB.NS", "name": "ABB India", "theme": "capital_goods", "comment": "Automation + electrification growth" },
+
+  { "ticker": "BHARTIARTL.NS", "name": "Bharti Airtel", "theme": "momentum", "comment": "Telecom ARPU expansion story" },
+  { "ticker": "ADANIPORTS.NS", "name": "Adani Ports", "theme": "momentum", "comment": "Logistics + port dominance" },
+  { "ticker": "MARUTI.NS", "name": "Maruti Suzuki", "theme": "growth", "comment": "Passenger vehicle market leader" },
+
+  { "ticker": "SUNPHARMA.NS", "name": "Sun Pharma", "theme": "defensive_growth", "comment": "Pharma leader with global presence" },
+  { "ticker": "HINDUNILVR.NS", "name": "Hindustan Unilever", "theme": "defensive", "comment": "Stable FMCG compounder" },
+
+  { "ticker": "WELCORP.NS", "name": "Welspun Corp", "theme": "cyclical", "comment": "Pipe manufacturer benefiting from oil & infra capex cycles (higher risk)" },
+  {
+    "ticker": "VEDL.NS",
+    "name": "Vedanta",
+    "theme": "dividend_high_risk",
+    "comment": "Extremely high dividend yield but leveraged balance sheet and governance concerns"
+  },
+  {
+    "ticker": "HINDZINC.NS",
+    "name": "Hindustan Zinc",
+    "theme": "dividend",
+    "comment": "Strong cash flows, consistent high dividends, low cost producer"
+  },
+  {
+    "ticker": "HINDALCO.NS",
+    "name": "Hindalco Industries",
+    "theme": "cyclical",
+    "comment": "Aluminium + copper global play, benefits from commodity upcycle"
+  }
+]
