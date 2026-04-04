@@ -37,7 +37,7 @@ function App() {
     try {
       setLoading(true);
       setResult(null);
-      const res = await axios.post("http://127.0.0.1:8000/plan", form);
+      const res = await axios.post("https://fi-planner-z0f6.onrender.com/plan", form);
       setResult(res.data);
       setPage(1);
     } catch (err) {
