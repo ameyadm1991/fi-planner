@@ -2,7 +2,12 @@ import { useState } from "react";
 import axios from "axios";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { Pie } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import "./App.css";
+
+ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 function App() {
   const [form, setForm] = useState({
@@ -44,51 +49,51 @@ function App() {
   };
 
   const handleDownloadPDF = () => {
-  if (!result) return;
+    if (!result) return;
 
-  const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text("Financial Independence Plan", 14, 20);
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Financial Independence Plan", 14, 20);
 
-  let startY = 30;
+    let startY = 30;
 
-  result.portfolio.monthly_equity.forEach((monthPlan) => {
-    doc.setFontSize(12);
-    doc.text(`Month ${monthPlan.month}`, 14, startY);
-    startY += 6;
+    result.portfolio.monthly_equity.forEach((monthPlan) => {
+      doc.setFontSize(12);
+      doc.text(`Month ${monthPlan.month}`, 14, startY);
+      startY += 6;
 
-    const rows = monthPlan.stocks.map((s) => [
-      s.ticker,
-      s.shares || "-",
-      s.price || "-",
-      s.amount || "-",
-      s.dividend_yield !== undefined ? s.dividend_yield + "%" : "-",
-      s.comment || "-",
-    ]);
+      const rows = monthPlan.stocks.map((s) => [
+        s.ticker,
+        s.shares || "-",
+        s.price || "-",
+        s.amount || "-",
+        s.dividend_yield !== undefined ? s.dividend_yield + "%" : "-",
+        s.comment || "-",
+      ]);
 
-    // Add gold and debt
-    rows.push([
-      "Gold", "-", "-", result.portfolio.gold?.amount || 0, "-", result.portfolio.gold?.comment || "-"
-    ]);
-    rows.push([
-      "Debt", "-", "-", result.portfolio.debt?.amount || 0, "-", result.portfolio.debt?.comment || "-"
-    ]);
+      // Add gold and debt
+      rows.push([
+        "Gold", "-", "-", result.portfolio.gold?.amount || 0, "-", result.portfolio.gold?.comment || "-"
+      ]);
+      rows.push([
+        "Debt", "-", "-", result.portfolio.debt?.amount || 0, "-", result.portfolio.debt?.comment || "-"
+      ]);
 
-    autoTable(doc, {
-      startY,
-      head: [["Ticker", "Shares", "Price", "Amount", "Yield %", "Comment"]],
-      body: rows,
-      theme: "grid",
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [22, 160, 133] },
-      alternateRowStyles: { fillColor: [240, 240, 240] },
+      autoTable(doc, {
+        startY,
+        head: [["Ticker", "Shares", "Price", "Amount", "Yield %", "Comment"]],
+        body: rows,
+        theme: "grid",
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [22, 160, 133] },
+        alternateRowStyles: { fillColor: [240, 240, 240] },
+      });
+
+      startY = doc.lastAutoTable.finalY + 10;
     });
 
-    startY = doc.lastAutoTable.finalY + 10;
-  });
-
-  doc.save("Financial_Independence_Plan.pdf");
-};
+    doc.save("Financial_Independence_Plan.pdf");
+  };
 
   const paginatedData =
     result?.portfolio?.monthly_equity?.slice(
@@ -96,20 +101,49 @@ function App() {
       page * ITEMS_PER_PAGE
     ) || [];
 
+  // Pie chart data
+  const getPieData = (form) => {
+    const labels = ["PPF", "PF", "FD", "Equity/MF", "Other"];
+    const rawData = [
+      form.ppf || 0,
+      form.pf || 0,
+      form.fd || 0,
+      form.equity || 0,
+      form.other || 0,
+    ];
+    // Filter out 0 values
+    const filteredLabels = labels.filter((_, idx) => rawData[idx] > 0);
+    const filteredData = rawData.filter((v) => v > 0);
+
+    return {
+      labels: filteredLabels,
+      datasets: [
+        {
+          data: filteredData,
+          backgroundColor: ["#1abc9c", "#3498db", "#f1c40f", "#e74c3c", "#9b59b6"],
+        },
+      ],
+    };
+  };
+
   return (
     <div className="app-container">
       <h1>💰 Financial Independence Planner</h1>
+      <div className="disclaimer" style={{ fontSize: "0.6rem" }}>
+        ⚠️ Disclaimer: This Financial Independence Planner provides simulations and projections only.
+        Always consult a qualified financial advisor before making investment decisions.
+      </div>
 
       <div className="input-card">
-        <h2>Enter Your Details</h2>
+        <h2>Enter Your Current Financial Details</h2>
         <div className="input-grid">
           <Input name="ppf" placeholder="PPF (₹)" title="Public Provident Fund" onChange={handleChange} />
           <Input name="pf" placeholder="PF (₹)" title="Employee PF" onChange={handleChange} />
           <Input name="fd" placeholder="FD (₹)" title="Fixed Deposits" onChange={handleChange} />
           <Input name="equity" placeholder="Equity / MF (₹)" title="Stocks / Mutual Funds" onChange={handleChange} />
           <Input name="other" placeholder="Other Assets (₹)" title="Gold, crypto etc." onChange={handleChange} />
-          <Input name="monthly_investment" placeholder="Monthly Investment (₹)" title="Amount available to you on a monthly basis to invest" onChange={handleChange} />
-          <Input name="target_monthly_income" placeholder="Target Monthly Income (₹)" title="How much passive amount you need post retiring" onChange={handleChange} />
+          <Input name="monthly_investment" placeholder="Monthly Investment (₹)" title="Amount available monthly to invest" onChange={handleChange} />
+          <Input name="target_monthly_income" placeholder="Target Monthly Income post retirement (₹)" title="Desired passive income post retirement" onChange={handleChange} />
         </div>
 
         <div className="dropdowns">
@@ -135,6 +169,29 @@ function App() {
 
       {result && (
         <>
+          {/* Pie Chart */}
+          <div style={{ maxWidth: "400px", margin: "20px auto" }}>
+            <Pie
+              data={getPieData(form)}
+              options={{
+                plugins: {
+                  datalabels: {
+                    color: "#fff",
+                    formatter: (value, context) => {
+                      const dataArr = context.chart.data.datasets[0].data;
+                      const sum = dataArr.reduce((a, b) => a + b, 0);
+                      const percentage = sum ? Math.round((value / sum) * 100) : 0;
+                      return percentage + "%";
+                    },
+                    font: { weight: "bold", size: 14 },
+                  },
+                  legend: { position: "bottom" },
+                },
+              }}
+            />
+          </div>
+
+          {/* Summary card */}
           <div className="summary">
             <Card
               title="Financial Independence"
@@ -149,6 +206,7 @@ function App() {
             📄 Download PDF
           </button>
 
+          {/* Monthly equity table */}
           {paginatedData.map((monthPlan, idx) => (
             <div key={idx} className="month-card">
               <h3>Month {monthPlan.month}</h3>
@@ -183,7 +241,7 @@ function App() {
                     <td>{result.portfolio.gold?.comment || "-"}</td>
                   </tr>
                   <tr>
-                    <td>Debt</td>
+                    <td>FD or Bonds</td>
                     <td>-</td>
                     <td>-</td>
                     <td>{result.portfolio.debt?.amount || 0}</td>

@@ -1,0 +1,34 @@
+[
+  { "ticker": "ITC.NS", "dividend_yield": 0.036 }, 
+  { "ticker": "POWERGRID.NS", "dividend_yield": 0.03 },
+  { "ticker": "COALINDIA.NS", "dividend_yield": 0.058 },
+  { "ticker": "ONGC.NS", "dividend_yield": 0.046 },
+  { "ticker": "BPCL.NS", "dividend_yield": 0.058 },
+  { "ticker": "NTPC.NS", "dividend_yield": 0.04 },
+  { "ticker": "RECLTD.NS", "dividend_yield": 0.055 },
+  { "ticker": "PFC.NS", "dividend_yield": 0.042 },
+  { "ticker": "HINDZINC.NS", "dividend_yield": 0.055 },
+  { "ticker": "VEDL.NS", "dividend_yield": 0.063 },
+
+  { "ticker": "RELIANCE.NS", "dividend_yield": 0.02 },
+  { "ticker": "TCS.NS", "dividend_yield": 0.041 },
+  { "ticker": "INFY.NS", "dividend_yield": 0.034 },
+  { "ticker": "HDFCBANK.NS", "dividend_yield": 0.02 },
+  { "ticker": "ICICIBANK.NS", "dividend_yield": 0.02 },
+  { "ticker": "KOTAKBANK.NS", "dividend_yield": 0.02 },
+  { "ticker": "AXISBANK.NS", "dividend_yield": 0.018 },
+
+  { "ticker": "LT.NS", "dividend_yield": 0.02 },
+  { "ticker": "ULTRACEMCO.NS", "dividend_yield": 0.02 },
+  { "ticker": "SIEMENS.NS", "dividend_yield": 0.018 },
+  { "ticker": "ABB.NS", "dividend_yield": 0.018 },
+
+  { "ticker": "BHARTIARTL.NS", "dividend_yield": 0.02 },
+  { "ticker": "ADANIPORTS.NS", "dividend_yield": 0.018 },
+  { "ticker": "MARUTI.NS", "dividend_yield": 0.015 },
+  { "ticker": "SUNPHARMA.NS", "dividend_yield": 0.02 },
+  { "ticker": "HINDUNILVR.NS", "dividend_yield": 0.018 },
+
+  { "ticker": "WELCORP.NS", "dividend_yield": 0.02 },
+  { "ticker": "HINDALCO.NS", "dividend_yield": 0.02 }
+]
