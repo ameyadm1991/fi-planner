@@ -25,6 +25,11 @@ function App() {
 
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // ✅ AI states
+  const [aiAdvice, setAiAdvice] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 3;
 
@@ -37,7 +42,13 @@ function App() {
     try {
       setLoading(true);
       setResult(null);
-      const res = await axios.post("https://fi-planner-z0f6.onrender.com/plan", form);
+      setAiAdvice(""); // reset AI when new plan generated
+
+      const res = await axios.post(
+        "https://fi-planner-z0f6.onrender.com/plan",
+        form
+      );
+
       setResult(res.data);
       setPage(1);
     } catch (err) {
@@ -45,6 +56,25 @@ function App() {
       alert("Error calling API");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ✅ AI CALL
+  const handleAIAdvice = async () => {
+    try {
+      setAiLoading(true);
+
+      const res = await axios.post(
+        "https://fi-planner-z0f6.onrender.com/ai-advice",
+        { user_data: form }
+      );
+
+      setAiAdvice(res.data.advice);
+    } catch (err) {
+      console.error(err);
+      alert("AI service failed");
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -71,7 +101,6 @@ function App() {
         s.comment || "-",
       ]);
 
-      // Add gold and debt
       rows.push([
         "Gold", "-", "-", result.portfolio.gold?.amount || 0, "-", result.portfolio.gold?.comment || "-"
       ]);
@@ -85,8 +114,6 @@ function App() {
         body: rows,
         theme: "grid",
         styles: { fontSize: 10 },
-        headStyles: { fillColor: [22, 160, 133] },
-        alternateRowStyles: { fillColor: [240, 240, 240] },
       });
 
       startY = doc.lastAutoTable.finalY + 10;
@@ -101,7 +128,6 @@ function App() {
       page * ITEMS_PER_PAGE
     ) || [];
 
-  // Pie chart data
   const getPieData = (form) => {
     const labels = ["PPF", "PF", "FD", "Equity/MF", "Other"];
     const rawData = [
@@ -111,8 +137,8 @@ function App() {
       form.equity || 0,
       form.other || 0,
     ];
-    // Filter out 0 values
-    const filteredLabels = labels.filter((_, idx) => rawData[idx] > 0);
+
+    const filteredLabels = labels.filter((_, i) => rawData[i] > 0);
     const filteredData = rawData.filter((v) => v > 0);
 
     return {
@@ -129,61 +155,58 @@ function App() {
   return (
     <div className="app-container">
       <h1>💰 Financial Independence Planner</h1>
+
       <div className="disclaimer" style={{ fontSize: "0.6rem" }}>
-        ⚠️ Disclaimer: This Financial Independence Planner provides simulations and projections only.
-        Always consult a qualified financial advisor before making investment decisions.
+        ⚠️ This tool provides projections only. Consult a financial advisor.
       </div>
 
       <div className="input-card">
-        <h2>Enter Your Current Financial Details</h2>
+        <h2>Enter Your Financial Details</h2>
+
         <div className="input-grid">
-          <Input name="ppf" placeholder="PPF (₹)" title="Public Provident Fund" onChange={handleChange} />
-          <Input name="pf" placeholder="PF (₹)" title="Employee PF" onChange={handleChange} />
-          <Input name="fd" placeholder="FD (₹)" title="Fixed Deposits" onChange={handleChange} />
-          <Input name="equity" placeholder="Equity / MF (₹)" title="Stocks / Mutual Funds" onChange={handleChange} />
-          <Input name="other" placeholder="Other Assets (₹)" title="Gold, crypto etc." onChange={handleChange} />
-          <Input name="monthly_investment" placeholder="Monthly Investment (₹)" title="Amount available monthly to invest" onChange={handleChange} />
-          <Input name="target_monthly_income" placeholder="Target Monthly Income post retirement (₹)" title="Desired passive income post retirement" onChange={handleChange} />
+          <Input name="ppf" placeholder="PPF (₹)" onChange={handleChange} />
+          <Input name="pf" placeholder="PF (₹)" onChange={handleChange} />
+          <Input name="fd" placeholder="FD (₹)" onChange={handleChange} />
+          <Input name="equity" placeholder="Equity/MF (₹)" onChange={handleChange} />
+          <Input name="other" placeholder="Other (₹)" onChange={handleChange} />
+          <Input name="monthly_investment" placeholder="Monthly Invest (₹)" onChange={handleChange} />
+          <Input name="target_monthly_income" placeholder="Target Income (₹)" onChange={handleChange} />
         </div>
 
         <div className="dropdowns">
           <select name="risk_profile" onChange={handleChange} value={form.risk_profile}>
-            <option value="moderate">Moderate Risk</option>
+            <option value="moderate">Moderate</option>
             <option value="conservative">Conservative</option>
             <option value="aggressive">Aggressive</option>
           </select>
 
           <select name="income_preference" onChange={handleChange} value={form.income_preference}>
             <option value="balanced">Balanced</option>
-            <option value="dividend">Dividend Focused</option>
-            <option value="growth">Growth Focused</option>
+            <option value="dividend">Dividend</option>
+            <option value="growth">Growth</option>
           </select>
         </div>
 
         <button onClick={handleSubmit} disabled={loading}>
           {loading ? "⏳ Generating..." : "🚀 Generate Plan"}
         </button>
-
-        {loading && <div className="spinner"></div>}
       </div>
 
       {result && (
         <>
           {/* Pie Chart */}
-          <div style={{ maxWidth: "400px", margin: "20px auto" }}>
+          <div className="chart-container">
             <Pie
               data={getPieData(form)}
               options={{
                 plugins: {
                   datalabels: {
                     color: "#fff",
-                    formatter: (value, context) => {
-                      const dataArr = context.chart.data.datasets[0].data;
+                    formatter: (value, ctx) => {
+                      const dataArr = ctx.chart.data.datasets[0].data;
                       const sum = dataArr.reduce((a, b) => a + b, 0);
-                      const percentage = sum ? Math.round((value / sum) * 100) : 0;
-                      return percentage + "%";
+                      return Math.round((value / sum) * 100) + "%";
                     },
-                    font: { weight: "bold", size: 14 },
                   },
                   legend: { position: "bottom" },
                 },
@@ -191,22 +214,30 @@ function App() {
             />
           </div>
 
-          {/* Summary card */}
-          <div className="summary">
-            <Card
-              title="Financial Independence"
-              value={`Years: ${Math.round(result.years_to_financial_independence)}, Progress: ${Math.round(
-                result.financial_independence_progress_percent
-              )}%`}
-              type="custom"
-            />
-          </div>
+          {/* Summary */}
+          <Card
+            title="Financial Independence"
+            value={`Years: ${Math.round(result.years_to_financial_independence)} | Progress: ${Math.round(result.financial_independence_progress_percent)}%`}
+          />
 
           <button className="pdf-btn" onClick={handleDownloadPDF}>
             📄 Download PDF
           </button>
 
-          {/* Monthly equity table */}
+          {/* ✅ AI BUTTON */}
+          <button className="ai-btn" onClick={handleAIAdvice} disabled={aiLoading}>
+            {aiLoading ? "⏳ Thinking..." : "🤖 Get AI Advice"}
+          </button>
+
+          {/* ✅ AI RESPONSE */}
+          {aiAdvice && (
+            <div className="ai-card">
+              <h3>AI Financial Advice</h3>
+              <p>{aiAdvice}</p>
+            </div>
+          )}
+
+          {/* Monthly Plans */}
           {paginatedData.map((monthPlan, idx) => (
             <div key={idx} className="month-card">
               <h3>Month {monthPlan.month}</h3>
@@ -232,57 +263,29 @@ function App() {
                       <td>{s.comment || "-"}</td>
                     </tr>
                   ))}
-                  <tr>
-                    <td>Gold</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>{result.portfolio.gold?.amount || 0}</td>
-                    <td>-</td>
-                    <td>{result.portfolio.gold?.comment || "-"}</td>
-                  </tr>
-                  <tr>
-                    <td>FD or Bonds</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>{result.portfolio.debt?.amount || 0}</td>
-                    <td>-</td>
-                    <td>{result.portfolio.debt?.comment || "-"}</td>
-                  </tr>
                 </tbody>
               </table>
             </div>
           ))}
-
-          <div className="pagination">
-            {Array.from(
-              { length: Math.ceil(result.portfolio.monthly_equity.length / ITEMS_PER_PAGE) },
-              (_, i) => (
-                <button key={i} onClick={() => setPage(i + 1)} className={page === i + 1 ? "active" : ""}>
-                  {i + 1}
-                </button>
-              )
-            )}
-          </div>
         </>
       )}
     </div>
   );
 }
 
-function Input({ name, placeholder, title, onChange }) {
+function Input({ name, placeholder, onChange }) {
   return (
     <input
       type="number"
       name={name}
       placeholder={placeholder}
-      title={title}
       onChange={onChange}
       className="animated-input"
     />
   );
 }
 
-function Card({ title, value, type }) {
+function Card({ title, value }) {
   return (
     <div className="card">
       <h4>{title}</h4>

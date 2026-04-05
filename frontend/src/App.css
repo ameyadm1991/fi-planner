@@ -214,3 +214,23 @@ button:disabled {
     font-size: 11px;
   }
 }
+
+.chart-container {
+  max-width: 400px;
+  margin: 20px auto;
+}
+
+.ai-btn {
+  background: #10b981;
+  color: white;
+  margin-top: 10px;
+}
+
+.ai-card {
+  background: #1f2937;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
