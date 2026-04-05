@@ -26,9 +26,15 @@ function App() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ AI states
+  // ✅ Existing AI (kept)
   const [aiAdvice, setAiAdvice] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+
+  // ✅ NEW CHAT STATES
+  const [messages, setMessages] = useState([]);
+  const [userInput, setUserInput] = useState("");
+  const [showAI, setShowAI] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
 
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 3;
@@ -42,7 +48,8 @@ function App() {
     try {
       setLoading(true);
       setResult(null);
-      setAiAdvice(""); // reset AI when new plan generated
+      setAiAdvice("");
+      setMessages([]); // reset chat
 
       const res = await axios.post(
         "https://fi-planner-z0f6.onrender.com/plan",
@@ -59,22 +66,69 @@ function App() {
     }
   };
 
-  // ✅ AI CALL
+  // ✅ OLD AI CALL (kept)
   const handleAIAdvice = async () => {
     try {
       setAiLoading(true);
 
       const res = await axios.post(
         "https://fi-planner-z0f6.onrender.com/ai-advice",
-        { user_data: form }
+        {
+          messages: [
+            {
+              role: "user",
+              content: `Here is my financial data: ${JSON.stringify(form)}. Give advice.`,
+            },
+          ],
+        }
       );
 
-      setAiAdvice(res.data.advice);
+      setAiAdvice(res.data.response);
     } catch (err) {
       console.error(err);
       alert("AI service failed");
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  // ✅ OPEN CHAT
+  const handleOpenAI = () => {
+    setShowAI(true);
+
+    if (messages.length === 0 && result) {
+      setMessages([
+        {
+          role: "user",
+          content: `Here is my financial plan: ${JSON.stringify(result)}. Give insights.`,
+        },
+      ]);
+    }
+  };
+
+  // ✅ CHAT SEND
+  const sendMessage = async () => {
+    if (!userInput.trim()) return;
+
+    const newMessages = [...messages, { role: "user", content: userInput }];
+    setMessages(newMessages);
+    setUserInput("");
+    setChatLoading(true);
+
+    try {
+      const res = await axios.post(
+        "https://fi-planner-z0f6.onrender.com/ai-advice",
+        { messages: newMessages }
+      );
+
+      setMessages([
+        ...newMessages,
+        { role: "assistant", content: res.data.response },
+      ]);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setChatLoading(false);
     }
   };
 
@@ -160,6 +214,10 @@ function App() {
         ⚠️ This tool provides projections only. Consult a financial advisor.
       </div>
 
+      {/* 🔥 NEW LINE */}
+      <div style={{ marginTop: "10px", fontSize: "0.75rem", color: "#1abc9c" }}>
+        💡 Get personalized insights with our AI Advisor after generating your plan.
+      </div>
 
       <div className="input-card">
         <h2>Enter Your Current Financial Details</h2>
@@ -195,27 +253,10 @@ function App() {
 
       {result && (
         <>
-          {/* Pie Chart */}
           <div className="chart-container">
-            <Pie
-              data={getPieData(form)}
-              options={{
-                plugins: {
-                  datalabels: {
-                    color: "#fff",
-                    formatter: (value, ctx) => {
-                      const dataArr = ctx.chart.data.datasets[0].data;
-                      const sum = dataArr.reduce((a, b) => a + b, 0);
-                      return Math.round((value / sum) * 100) + "%";
-                    },
-                  },
-                  legend: { position: "bottom" },
-                },
-              }}
-            />
+            <Pie data={getPieData(form)} />
           </div>
 
-          {/* Summary */}
           <Card
             title="Financial Independence"
             value={`Years: ${Math.round(result.years_to_financial_independence)} | Progress: ${Math.round(result.financial_independence_progress_percent)}%`}
@@ -225,12 +266,16 @@ function App() {
             📄 Download PDF
           </button>
 
-          {/* ✅ AI BUTTON */}
+          {/* OLD AI */}
           <button className="ai-btn" onClick={handleAIAdvice} disabled={aiLoading}>
             {aiLoading ? "⏳ Thinking..." : "🤖 Get AI Advice"}
           </button>
 
-          {/* ✅ AI RESPONSE */}
+          {/* NEW CHAT BUTTON */}
+          <button className="ai-btn" onClick={handleOpenAI}>
+            💬 Open AI Chat
+          </button>
+
           {aiAdvice && (
             <div className="ai-card">
               <h3>AI Financial Advice</h3>
@@ -238,21 +283,10 @@ function App() {
             </div>
           )}
 
-          {/* Monthly Plans */}
           {paginatedData.map((monthPlan, idx) => (
             <div key={idx} className="month-card">
               <h3>Month {monthPlan.month}</h3>
               <table>
-                <thead>
-                  <tr>
-                    <th>Stock</th>
-                    <th>Shares</th>
-                    <th>Price</th>
-                    <th>Amount</th>
-                    <th>Yield %</th>
-                    <th>Comment</th>
-                  </tr>
-                </thead>
                 <tbody>
                   {monthPlan.stocks.map((s, i) => (
                     <tr key={i}>
@@ -269,6 +303,34 @@ function App() {
             </div>
           ))}
         </>
+      )}
+
+      {/* 🔥 AI CHAT SIDEBAR */}
+      {showAI && (
+        <div className="ai-sidebar">
+          <div className="ai-header">
+            <h3>AI Advisor</h3>
+            <button onClick={() => setShowAI(false)}>✖</button>
+          </div>
+
+          <div className="chat-box">
+            {messages.map((m, i) => (
+              <div key={i} className={`chat-message ${m.role}`}>
+                {m.content}
+              </div>
+            ))}
+            {chatLoading && <div className="chat-message assistant">Typing...</div>}
+          </div>
+
+          <div className="chat-input">
+            <input
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              placeholder="Ask anything..."
+            />
+            <button onClick={sendMessage}>Send</button>
+          </div>
+        </div>
       )}
     </div>
   );

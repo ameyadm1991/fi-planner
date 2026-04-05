@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+
+from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.request_models import PlanRequest
 from app.engines.portfolio_engine import generate_portfolio
@@ -49,33 +51,12 @@ def plan(data: PlanRequest):
     }
 
 
-@app.get("/test-ai")
-def test_ai():
-    from app.services.ai_service import get_ai_advice
-
-    prompt = "I invest ₹50,000 monthly. Give simple financial advice."
-
-    response = get_ai_advice(prompt)
-
-    return {"response": response}
 
 @app.post("/ai-advice")
-def ai_advice(req: AIRequest):
-    user_data = req.user_data
+async def ai_advice(request: Request):
+    data = await request.json()
+    messages = data.get("messages", [])
 
-    prompt = f"""
-    User financial details:
-    {user_data}
+    response = get_ai_advice(messages)
 
-    Give:
-    - Personalized financial advice
-    - Investment strategy
-    - Risk suggestions
-    - Mistakes to avoid
-
-    Keep it simple and actionable.
-    """
-
-    advice = get_ai_advice(prompt)
-
-    return {"advice": advice}
+    return {"response": response}

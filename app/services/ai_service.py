@@ -3,19 +3,16 @@ import requests
 import sys
 from dotenv import load_dotenv
 
-# Load env variables
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama3-8b-8192")
-
 
 def log(msg):
     print(msg)
     sys.stdout.flush()
 
 
-def call_groq(prompt: str):
+def call_groq(messages):
     log("➡️ Calling Groq...")
 
     if not GROQ_API_KEY:
@@ -31,12 +28,12 @@ def call_groq(prompt: str):
     data = {
         "model": "llama-3.1-8b-instant",
         "messages": [
-            {"role": "system", "content": "You are a financial advisor for Indian users."},
-            {"role": "user", "content": prompt}
+            {"role": "system", "content": "You are a smart financial advisor for Indian users. Give concise, actionable advice."},
+            *messages
         ]
     }
 
-    res = requests.post(url, headers=headers, json=data, timeout=15)
+    res = requests.post(url, headers=headers, json=data, timeout=20)
 
     log(f"Groq Status: {res.status_code}")
 
@@ -45,9 +42,9 @@ def call_groq(prompt: str):
     return res.json()["choices"][0]["message"]["content"]
 
 
-def get_ai_advice(prompt: str):
+def get_ai_advice(messages):
     try:
-        return call_groq(prompt)
+        return call_groq(messages)
     except Exception as e:
         log(f"❌ Groq failed: {str(e)}")
-        return "AI service is temporarily unavailable. Please try again later."
+        return "AI service is temporarily unavailable. Please try again."
