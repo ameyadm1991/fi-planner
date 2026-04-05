@@ -1,11 +1,26 @@
 import os
 import requests
+import sys
+from dotenv import load_dotenv
+
+# Load env variables
+load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama3-8b-8192")
+
+
+def log(msg):
+    print(msg)
+    sys.stdout.flush()
 
 
 def call_groq(prompt: str):
+    log("➡️ Calling Groq...")
+
+    if not GROQ_API_KEY:
+        raise Exception("Missing GROQ_API_KEY")
+
     url = "https://api.groq.com/openai/v1/chat/completions"
 
     headers = {
@@ -14,41 +29,25 @@ def call_groq(prompt: str):
     }
 
     data = {
-        "model": "llama3-70b-8192",
+        "model": "llama-3.1-8b-instant",
         "messages": [
-            {"role": "system", "content": "You are a financial advisor helping users achieve financial independence in India."},
+            {"role": "system", "content": "You are a financial advisor for Indian users."},
             {"role": "user", "content": prompt}
         ]
     }
 
-    res = requests.post(url, headers=headers, json=data, timeout=10)
-    return res.json()["choices"][0]["message"]["content"]
+    res = requests.post(url, headers=headers, json=data, timeout=15)
 
+    log(f"Groq Status: {res.status_code}")
 
-def call_openrouter(prompt: str):
-    url = "https://openrouter.ai/api/v1/chat/completions"
+    res.raise_for_status()
 
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    data = {
-        "model": "mistralai/mistral-7b-instruct:free",
-        "messages": [
-            {"role": "user", "content": prompt}
-        ]
-    }
-
-    res = requests.post(url, headers=headers, json=data, timeout=10)
     return res.json()["choices"][0]["message"]["content"]
 
 
 def get_ai_advice(prompt: str):
     try:
         return call_groq(prompt)
-    except Exception:
-        try:
-            return call_openrouter(prompt)
-        except Exception:
-            return "AI service is temporarily unavailable. Please try again later."
+    except Exception as e:
+        log(f"❌ Groq failed: {str(e)}")
+        return "AI service is temporarily unavailable. Please try again later."

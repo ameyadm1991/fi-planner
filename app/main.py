@@ -49,6 +49,16 @@ def plan(data: PlanRequest):
     }
 
 
+@app.get("/test-ai")
+def test_ai():
+    from app.services.ai_service import get_ai_advice
+
+    prompt = "I invest ₹50,000 monthly. Give simple financial advice."
+
+    response = get_ai_advice(prompt)
+
+    return {"response": response}
+
 @app.post("/ai-advice")
 def ai_advice(req: AIRequest):
     user_data = req.user_data

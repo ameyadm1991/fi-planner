@@ -160,6 +160,10 @@ function App() {
         ⚠️ This tool provides projections only. Consult a financial advisor.
       </div>
 
+      <div style={{ marginTop: "12px", fontSize: "0.75rem", color: "#444" }}>
+        ✨ Unlock deeper insights with <b>AI Advice</b> after generating your plan — tailored recommendations to optimize your path to financial independence.
+      </div>
+
       <div className="input-card">
         <h2>Enter Your Financial Details</h2>
 
