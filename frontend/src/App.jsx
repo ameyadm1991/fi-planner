@@ -10,6 +10,35 @@ import "./App.css";
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 function App() {
+
+  // 🔥 FORMAT FUNCTION (NEW)
+  const formatAIResponse = (text) => {
+    try {
+      const parsed = JSON.parse(text);
+
+      // Convert JSON into readable format
+      let formatted = "";
+
+      for (const key in parsed) {
+        formatted += `• ${key.toUpperCase()}:\n`;
+
+        if (typeof parsed[key] === "object") {
+          for (const sub in parsed[key]) {
+            formatted += `   - ${sub}: ${parsed[key][sub]}\n`;
+          }
+        } else {
+          formatted += `   ${parsed[key]}\n`;
+        }
+
+        formatted += "\n";
+      }
+
+      return formatted;
+    } catch {
+      return text; // normal text
+    }
+  };
+
   const [form, setForm] = useState({
     ppf: "",
     pf: "",
@@ -26,11 +55,9 @@ function App() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Existing AI (kept)
   const [aiAdvice, setAiAdvice] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
 
-  // ✅ NEW CHAT STATES
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState("");
   const [showAI, setShowAI] = useState(false);
@@ -49,7 +76,7 @@ function App() {
       setLoading(true);
       setResult(null);
       setAiAdvice("");
-      setMessages([]); // reset chat
+      setMessages([]);
 
       const res = await axios.post(
         "https://fi-planner-z0f6.onrender.com/plan",
@@ -66,7 +93,6 @@ function App() {
     }
   };
 
-  // ✅ OLD AI CALL (kept)
   const handleAIAdvice = async () => {
     try {
       setAiLoading(true);
@@ -83,7 +109,7 @@ function App() {
         }
       );
 
-      setAiAdvice(res.data.response);
+      setAiAdvice(formatAIResponse(res.data.response));
     } catch (err) {
       console.error(err);
       alert("AI service failed");
@@ -92,7 +118,6 @@ function App() {
     }
   };
 
-  // ✅ OPEN CHAT
   const handleOpenAI = () => {
     setShowAI(true);
 
@@ -106,7 +131,6 @@ function App() {
     }
   };
 
-  // ✅ CHAT SEND
   const sendMessage = async () => {
     if (!userInput.trim()) return;
 
@@ -123,7 +147,10 @@ function App() {
 
       setMessages([
         ...newMessages,
-        { role: "assistant", content: res.data.response },
+        {
+          role: "assistant",
+          content: formatAIResponse(res.data.response),
+        },
       ]);
     } catch (err) {
       console.error(err);
@@ -210,11 +237,10 @@ function App() {
     <div className="app-container">
       <h1>💰 Financial Independence Planner</h1>
 
-      <div className="disclaimer" style={{ fontSize: "0.6rem" }}>
+      <div className="disclaimer">
         ⚠️ This tool provides projections only. Consult a financial advisor.
       </div>
 
-      {/* 🔥 NEW LINE */}
       <div style={{ marginTop: "10px", fontSize: "0.75rem", color: "#1abc9c" }}>
         💡 Get personalized insights with our AI Advisor after generating your plan.
       </div>
@@ -228,8 +254,8 @@ function App() {
           <Input name="fd" placeholder="FD (₹)" onChange={handleChange} />
           <Input name="equity" placeholder="Equity/MF (₹)" onChange={handleChange} />
           <Input name="other" placeholder="Other (₹)" onChange={handleChange} />
-          <Input name="monthly_investment" placeholder="I can invest this amount monthly (₹)" onChange={handleChange} />
-          <Input name="target_monthly_income" placeholder="Target Income post requirement (₹)" onChange={handleChange} />
+          <Input name="monthly_investment" placeholder="Monthly Investment (₹)" onChange={handleChange} />
+          <Input name="target_monthly_income" placeholder="Target Income (₹)" onChange={handleChange} />
         </div>
 
         <div className="dropdowns">
@@ -251,61 +277,7 @@ function App() {
         </button>
       </div>
 
-      {result && (
-        <>
-          <div className="chart-container">
-            <Pie data={getPieData(form)} />
-          </div>
-
-          <Card
-            title="Financial Independence"
-            value={`Years: ${Math.round(result.years_to_financial_independence)} | Progress: ${Math.round(result.financial_independence_progress_percent)}%`}
-          />
-
-          <button className="pdf-btn" onClick={handleDownloadPDF}>
-            📄 Download PDF
-          </button>
-
-          {/* OLD AI */}
-          <button className="ai-btn" onClick={handleAIAdvice} disabled={aiLoading}>
-            {aiLoading ? "⏳ Thinking..." : "🤖 Get AI Advice"}
-          </button>
-
-          {/* NEW CHAT BUTTON */}
-          <button className="ai-btn" onClick={handleOpenAI}>
-            💬 Open AI Chat
-          </button>
-
-          {aiAdvice && (
-            <div className="ai-card">
-              <h3>AI Financial Advice</h3>
-              <p>{aiAdvice}</p>
-            </div>
-          )}
-
-          {paginatedData.map((monthPlan, idx) => (
-            <div key={idx} className="month-card">
-              <h3>Month {monthPlan.month}</h3>
-              <table>
-                <tbody>
-                  {monthPlan.stocks.map((s, i) => (
-                    <tr key={i}>
-                      <td>{s.ticker}</td>
-                      <td>{s.shares}</td>
-                      <td>{s.price}</td>
-                      <td>{s.amount}</td>
-                      <td>{s.dividend_yield}%</td>
-                      <td>{s.comment || "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))}
-        </>
-      )}
-
-      {/* 🔥 AI CHAT SIDEBAR */}
+      {/* CHAT SIDEBAR */}
       {showAI && (
         <div className="ai-sidebar">
           <div className="ai-header">
@@ -345,15 +317,6 @@ function Input({ name, placeholder, onChange }) {
       onChange={onChange}
       className="animated-input"
     />
-  );
-}
-
-function Card({ title, value }) {
-  return (
-    <div className="card">
-      <h4>{title}</h4>
-      <p>{value}</p>
-    </div>
   );
 }
 
