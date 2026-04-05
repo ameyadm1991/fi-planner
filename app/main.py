@@ -7,6 +7,11 @@ from app.engines.financial_engine import (
     years_to_fi, fi_progress, current_passive_income
 )
 from app.engines.scenario_engine import simulate_sip_increase
+from app.services.ai_service import get_ai_advice
+from pydantic import BaseModel
+
+class AIRequest(BaseModel):
+    user_data: dict
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
@@ -42,3 +47,25 @@ def plan(data: PlanRequest):
         "scenario": scenario,
         "portfolio": portfolio
     }
+
+
+@app.post("/ai-advice")
+def ai_advice(req: AIRequest):
+    user_data = req.user_data
+
+    prompt = f"""
+    User financial details:
+    {user_data}
+
+    Give:
+    - Personalized financial advice
+    - Investment strategy
+    - Risk suggestions
+    - Mistakes to avoid
+
+    Keep it simple and actionable.
+    """
+
+    advice = get_ai_advice(prompt)
+
+    return {"advice": advice}
